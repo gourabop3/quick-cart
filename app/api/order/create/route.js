@@ -1,3 +1,4 @@
+import connectDB from "@/config/db";
 import { inngest } from "@/config/inngest";
 import Product from "@/models/Product";
 import User from "@/models/User";
@@ -6,6 +7,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    await connectDB();
     const { userId } = getAuth(request);
     const { address, items } = await request.json();
 
@@ -14,10 +16,13 @@ export async function POST(request) {
     }
 
     // calculate amount using items
-    const amount = await items.reduce(async (acc, item) => {
+    let amount = 0;
+    for (const item of items) {
       const product = await Product.findById(item.product);
-      return await acc + product.offerPrice * item.quantity;
-    }, 0);
+      if (product) {
+        amount += product.offerPrice * item.quantity;
+      }
+    }
 
     await inngest.send({
       name: "order/created",
@@ -31,8 +36,19 @@ export async function POST(request) {
     });
 
     // Clear user cart after order creation
-    const user = await User.findById(userId);
-    user.cartItems = {};
+    let user = await User.findById(userId);
+    if (!user) {
+      // Create user if they don't exist
+      user = new User({
+        _id: userId,
+        name: "User",
+        email: "user@example.com",
+        imageUrl: "",
+        cartItems: {}
+      });
+    } else {
+      user.cartItems = {};
+    }
     await user.save();
 
     return NextResponse.json({ success: true, message: "Order Placed" });

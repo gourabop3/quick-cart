@@ -10,9 +10,21 @@ export async function POST(request) {
     const { cartData } = await request.json();
 
     await connectDB();
-    const user = await User.findById(userId);
+    let user = await User.findById(userId);
 
-    user.cartItems = cartData;
+    if (!user) {
+      // Create user if they don't exist
+      user = new User({
+        _id: userId,
+        name: "User",
+        email: "user@example.com",
+        imageUrl: "",
+        cartItems: cartData
+      });
+    } else {
+      user.cartItems = cartData;
+    }
+    
     await user.save();
 
     return NextResponse.json({ success: true });
