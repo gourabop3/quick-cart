@@ -8,10 +8,18 @@ export async function GET(request) {
     const { userId } = getAuth(request);
 
     await connectDB();
-    const user = await User.findById(userId);
+    let user = await User.findById(userId);
 
     if (!user) {
-      return NextResponse.json({ success: false, message: "User Not Found" });
+      // Create user if they don't exist
+      user = new User({
+        _id: userId,
+        name: "User",
+        email: "user@example.com",
+        imageUrl: "",
+        cartItems: {}
+      });
+      await user.save();
     }
 
     return NextResponse.json({ success: true, user });
