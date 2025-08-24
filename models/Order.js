@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
+  orderId: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    default: () => `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  },
   userId: { type: String, required: true, ref: "user" },
   items: [
     {

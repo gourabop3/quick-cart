@@ -71,8 +71,13 @@ export const createUserOrder = inngest.createFunction(
   },
   { event: "order/created" },
   async ({ events }) => {
-    const orders = events.map((event) => {
+    const orders = events.map((event, index) => {
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substr(2, 9);
+      const batchIndex = index.toString().padStart(2, '0');
+      
       return {
+        orderId: `ORD-${timestamp}-${batchIndex}-${randomSuffix}`,
         userId: event.data.userId,
         items: event.data.items,
         amount: event.data.amount,
