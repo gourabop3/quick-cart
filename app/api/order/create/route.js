@@ -5,6 +5,12 @@ import User from "@/models/User";
 import Order from "@/models/Order";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import Razorpay from "razorpay";
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 export async function POST(request) {
   try {
@@ -42,42 +48,35 @@ export async function POST(request) {
     // Add 2% processing fee
     const finalAmount = amount + Math.floor(amount * 0.02);
 
-    // Try to send order creation event to Inngest first
-    let orderCreated = false;
-    try {
-      await inngest.send({
-        name: "order/created",
-        data: {
-          userId,
-          address,
-          items,
-          amount: finalAmount,
-          date: Date.now(),
-        },
-      });
-      orderCreated = true;
-    } catch (inngestError) {
-      console.error("Inngest error, creating order directly:", inngestError);
-      
-      // Fallback: Create order directly in database
-      try {
-        const order = new Order({
-          userId,
-          items,
-          amount: finalAmount,
-          address,
-          date: Date.now(),
-        });
-        await order.save();
-        orderCreated = true;
-      } catch (directOrderError) {
-        console.error("Direct order creation failed:", directOrderError);
-        return NextResponse.json({ 
-          success: false, 
-          message: "Failed to create order. Please try again." 
-        }, { status: 500 });
-      }
-    }
+    // Create order in database first
+    const order = new Order({
+      userId,
+      items,
+      amount: finalAmount,
+      address,
+      date: Date.now(),
+      paymentStatus: "pending",
+      paymentMethod: "UPI"
+    });
+
+    const savedOrder = await order.save();
+
+    // Create Razorpay payment order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(finalAmount * 100), // Convert to paise
+      currency: "INR",
+      receipt: savedOrder.orderId,
+      payment_capture: 1,
+      notes: {
+        userId: userId,
+        orderId: savedOrder.orderId,
+      },
+    });
+
+    // Update order with Razorpay order ID
+    await Order.findByIdAndUpdate(savedOrder._id, {
+      razorpayOrderId: razorpayOrder.id
+    });
 
     // Clear user cart after order creation
     try {
@@ -102,14 +101,26 @@ export async function POST(request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: "Order Placed Successfully",
-      amount: finalAmount
+      message: "Order created successfully. Please complete payment.",
+      order: {
+        id: savedOrder._id,
+        orderId: savedOrder.orderId,
+        amount: finalAmount,
+        status: savedOrder.status,
+        paymentStatus: savedOrder.paymentStatus
+      },
+      payment: {
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key: process.env.RAZORPAY_KEY_ID
+      }
     });
   } catch (error) {
     console.error("Order creation error:", error);
     return NextResponse.json({ 
       success: false, 
-      message: "Failed to place order. Please try again." 
+      message: "Failed to create order. Please try again." 
     }, { status: 500 });
   }
 }

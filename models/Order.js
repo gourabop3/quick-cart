@@ -23,6 +23,12 @@ const orderSchema = new mongoose.Schema({
   address: { type: String, required: true, ref: "address" },
   status: { type: String, required: true, default: "Order Placed" },
   date: { type: Number, required: true },
+  // Payment fields
+  paymentStatus: { type: String, default: "pending", enum: ["pending", "completed", "failed"] },
+  paymentId: { type: String },
+  paymentMethod: { type: String, default: "UPI" },
+  paidAt: { type: Number },
+  razorpayOrderId: { type: String },
 });
 
 // Pre-save middleware to ensure orderId is always set

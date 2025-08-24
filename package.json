@@ -17,6 +17,7 @@
     "inngest": "^3.34.1",
     "mongoose": "^8.13.1",
     "next": "^15.2.3",
+    "razorpay": "^2.9.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.1"

@@ -92,7 +92,18 @@ const Orders = () => {
                     <span>
                       Date : {new Date(order.date).toLocaleDateString()}
                     </span>
-                    <span>Payment : Pending</span>
+                    <div className="flex justify-between items-center">
+                      <span>Status : {order.status}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        order.paymentStatus === "completed" 
+                          ? "bg-green-100 text-green-800" 
+                          : order.paymentStatus === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
+                      }`}>
+                        Payment: {order.paymentStatus === "completed" ? "Paid" : order.paymentStatus === "pending" ? "Pending" : "Failed"}
+                      </span>
+                    </div>
                   </p>
                 </div>
               </div>

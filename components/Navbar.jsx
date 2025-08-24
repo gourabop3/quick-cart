@@ -4,7 +4,8 @@ import { assets, BagIcon, BoxIcon, CartIcon, HomeIcon } from "@/assets/assets";
 import Link from "next/link";
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
-import { useClerk, UserButton } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
+import UserDropdown from "./UserDropdown";
 
 const Navbar = () => {
   const { isSeller, router, user } = useAppContext();
@@ -49,22 +50,17 @@ const Navbar = () => {
         <Image className="w-4 h-4" src={assets.search_icon} alt="search icon" />
         {user ? (
           <>
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="cart"
-                  labelIcon={<CartIcon />}
-                  onClick={() => router.push("/cart")}
-                />
-              </UserButton.MenuItems>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="My Orders"
-                  labelIcon={<BagIcon />}
-                  onClick={() => router.push("/my-orders")}
-                />
-              </UserButton.MenuItems>
-            </UserButton>
+            <button
+              onClick={() => router.push("/cart")}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <Image src={assets.cart_icon} alt="cart icon" className="w-5 h-5" />
+              {/* Cart badge */}
+              <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                0
+              </span>
+            </button>
+            <UserDropdown />
           </>
         ) : (
           <button
@@ -88,36 +84,17 @@ const Navbar = () => {
         )}
         {user ? (
           <>
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="Home"
-                  labelIcon={<HomeIcon />}
-                  onClick={() => router.push("/")}
-                />
-              </UserButton.MenuItems>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="Products"
-                  labelIcon={<BoxIcon />}
-                  onClick={() => router.push("/all-products")}
-                />
-              </UserButton.MenuItems>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="cart"
-                  labelIcon={<CartIcon />}
-                  onClick={() => router.push("/cart")}
-                />
-              </UserButton.MenuItems>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="My Orders"
-                  labelIcon={<BagIcon />}
-                  onClick={() => router.push("/my-orders")}
-                />
-              </UserButton.MenuItems>
-            </UserButton>
+            <button
+              onClick={() => router.push("/cart")}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <Image src={assets.cart_icon} alt="cart icon" className="w-5 h-5" />
+              {/* Cart badge */}
+              <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                0
+              </span>
+            </button>
+            <UserDropdown />
           </>
         ) : (
           <button

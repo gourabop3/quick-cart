@@ -1,23 +1,35 @@
-import { Outfit } from "next/font/google";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { AppContextProvider } from "@/context/AppContext";
-import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
+import { AppContextProvider } from "@/context/AppContext";
+import Navbar from "@/components/Navbar";
+import { Toaster } from "react-hot-toast";
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500"] });
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "QuickCart - GreatStack",
-  description: "E-Commerce with Next.js ",
+export const metadata: Metadata = {
+  title: "QuickCart - Your Online Shopping Destination",
+  description: "Discover amazing products at great prices. Shop now on QuickCart!",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${outfit.className} antialiased text-gray-700`}>
-          <Toaster />
-          <AppContextProvider>{children}</AppContextProvider>
+        <head>
+          <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        </head>
+        <body className={inter.className}>
+          <AppContextProvider>
+            <Navbar />
+            {children}
+            <Toaster position="top-right" />
+          </AppContextProvider>
         </body>
       </html>
     </ClerkProvider>
